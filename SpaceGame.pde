@@ -189,8 +189,12 @@ void setup(){
 }
 
 void draw(){
-  println(millis() - startTime);
+  int gameTime = millis() - startTime;
+  println(gameTime);
   background(0);
+  textSize(32);
+  text("score", 650,100);
+  text(gameTime,650,150);
   ship.display();
   ship.spin();
   ship.move();
@@ -198,6 +202,8 @@ void draw(){
     rock[i].display();
     rock[i].move();
     if(collision(ship, rock[i])){
+      delay(1000);
+	startTime = millis();
       createGame();
       break;
     }
