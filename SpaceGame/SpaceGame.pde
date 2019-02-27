@@ -21,6 +21,8 @@ float[][] multiply (float [][]mat1, float [][] mat2){
   return res;
 }
 
+long warps = 0;
+
 // Takes an angle and returns the rotation matrix for that angle
 float[][] rotationMatrix (float radians){
   float [][] res = {  {cos(radians), -sin(radians)},
@@ -116,15 +118,19 @@ class Ship{
     // Some statements to allow teleporting if ship goes beyond viewable screen
     if(deltaX > width/2){
       deltaX = -width/2;
+      warps = warps + 1;
     }
     if(deltaX < -width/2){
       deltaX = width/2;
+      warps = warps + 1;
     }
     if(deltaY > height/2){
       deltaY = -height/2;
+      warps = warps + 1;
     }
     if(deltaY < -height/2){
       deltaY = height/2;
+      warps = warps + 1;
     }
     fill(255,255,255); 
     // deltaX and deltaY describe how much the center of the triangle has moved. This is pretty much the coordinates for the center of the triangle
@@ -161,6 +167,13 @@ class Ship{
 
 Ship ship;
 Rock [] rock;
+// Keeping track of time ship is still
+long totalTimeStill = 0;
+long timeStill = 0;
+
+// Keeping track of time ship is moving 
+long totalTimeMoving = 0;
+long timeMoving = 0;
 
 void createGame(){
   ship = new Ship();
@@ -168,6 +181,30 @@ void createGame(){
   for(int i = 0; i < 10; i++){
     rock[i] = new Rock();
   }
+}
+
+long dontMoveFitnesFunction(){
+  return totalTimeStill * totalTimeStill - totalTimeMoving;
+}
+
+long dontMoveTakeWarpsFitnesFunction(){
+  return dontMoveFitnesFunction() + (warps * warps * warps);
+}
+
+long dontMoveNoWarpsFitnesFunction(){
+  return dontMoveFitnesFunction() - (warps * warps * warps);
+}
+
+long moveFitnessFunction(){
+  return totalTimeMoving * totalTimeMoving - totalTimeStill;
+}
+
+long moveTakeWarpsFitnessFunction(){
+  return moveFitnessFunction() + (warps * warps * warps);
+}
+
+long moveNoWarpsFitnessFunction(){
+  return moveFitnessFunction() - (warps * warps * warps);
 }
 
 boolean collision(Ship a, Rock b){
@@ -185,16 +222,16 @@ void setup(){
   noStroke();
   ellipseMode(CENTER); 
   createGame();
+  timeStill = millis(); // Begin keeping track of time still since ship is not moving at first 
   startTime = millis();
 }
 
 void draw(){
   int gameTime = millis() - startTime;
-  println(gameTime);
   background(0);
   textSize(32);
-  text("score", 650,100);
-  text(gameTime,650,150);
+  text("Score", 650,100);
+  text(gameTime / 1000,650,150);
   ship.display();
   ship.spin();
   ship.move();
@@ -202,8 +239,23 @@ void draw(){
     rock[i].display();
     rock[i].move();
     if(collision(ship, rock[i])){
+      if(ship.speed == 0){ // If ship is not moving. Update total time ship was still 
+        totalTimeStill = totalTimeStill + int((millis() - timeStill) / 500);
+      }
+      else{ // Otherwise need to update total time ship was moving 
+        totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500);
+      }
+      println("Time still: " + totalTimeStill);
+      println("Don't move fitness: " + dontMoveFitnesFunction());
+      println();
+      println("Time moving: " + totalTimeMoving);
+      println("Move fitness: " + moveFitnessFunction());
+      println();
+      totalTimeStill = 0;
+      totalTimeMoving = 0;
+      warps = 0;
       delay(1000);
-	startTime = millis();
+      startTime = millis();
       createGame();
       break;
     }
@@ -214,6 +266,8 @@ void keyReleased(){
   if(key == CODED){
     if (keyCode == UP){
       ship.speed = 0;
+      timeStill = millis(); // Ship went from moving to not moving. Begin to keep track of time ship isn't moving 
+      totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500); // Ship stopped moving so update total time ship was moving
     }
     if (keyCode == LEFT){
       ship.rotateSpeed = 0;
@@ -228,6 +282,8 @@ void keyPressed(){
   if(key == CODED){
     if(keyCode == UP){
       ship.speed = 5;
+      totalTimeStill = totalTimeStill + int((millis() - timeStill) / 500); // Ship started moving so update total time ship was not moving 
+      timeMoving = millis(); // Ship went from not moving to moving. Begin to keep track of time ship is moving
     }
     else if (keyCode == LEFT){
       ship.rotateSpeed = -PI/30;
