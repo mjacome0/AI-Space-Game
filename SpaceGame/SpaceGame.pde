@@ -40,7 +40,44 @@ class Matrix{
       }
     }
   }
+// this just takes a matrix and gives it a random value  
+  void randomizer(){
+    for(int i = 0; i < row;i++){
+      for(int j = 0; j < col; j++){
+       matrix[i][j] = random(0,1);
+      }
+    }
+  }
 }
+
+
+//start of the initial nn 
+//right now i just put that it makes the 2 matricies when an instance of it is called
+class nn{
+Matrix output;
+Matrix input;
+int row1;
+int row2;
+int col1;
+int col2;
+//gave it a changeable 3 layer system just incase we need to change nodes later
+  nn(int r1, int c1,int r2, int c2){
+     row1 = r1;
+     row2 = r2;
+     col1 = c1;
+     col2 = c2;
+     input = new Matrix(r1,c1);
+     output = new Matrix(r2,c2); 
+   
+     output.randomizer();  
+     input.randomizer();  
+  }
+  
+}
+//called the instance and intialized it with a 5*9 and a 3*6
+//seeing input-hidden weights would just be first.input.matrix[i][j]
+//seeing hidden-output weights would just be first.output.matrix[i][j]
+nn first = new nn(5,9,3,6);
 
 long warps = 0;
 
