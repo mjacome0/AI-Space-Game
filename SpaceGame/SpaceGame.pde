@@ -3,30 +3,51 @@
 // This is generally sufficient in making objects center around the visible center of the screen isntead of centering at (0, 0)
 
 // Takes two matrices and returns the product between them
-float[][] multiply (float [][]mat1, float [][] mat2){
-  float [][] res = {};
-  int mat1Row = mat1.length;
-  int mat1Col = mat1[0].length;
-  int mat2Row = mat2.length;
-  int mat2Col = mat2[0].length;
-  res = new float[mat1Row][mat2Col];
-  for(int i = 0; i < mat2Row;i++){
-    for(int j = 0; j < mat2Col; j++){
-      res[i][j] = 0;
-      for(int k = 0;  k < mat1Col; k++){
-         res[i][j] = res[i][j] + (mat1[i][k] * mat2[k][j]);
+Matrix multiplyMatrices (Matrix mat1, Matrix mat2){
+  Matrix res = new Matrix(mat1.row, mat2.col);
+  for(int i = 0; i < mat2.row;i++){
+    for(int j = 0; j < mat2.col; j++){
+      res.matrix[i][j] = 0;
+      for(int k = 0;  k < mat1.col; k++){
+         res.matrix[i][j] = res.matrix[i][j] + (mat1.matrix[i][k] * mat2.matrix[k][j]);
       }
     }
   }
   return res;
 }
 
+class Matrix{
+  int row;
+  int col;
+  float[][] matrix;
+  
+  Matrix(int r, int c) {
+    row = r;
+    col = c;
+    matrix = new float[row][col];
+  }
+  
+  Matrix(float[][] m) {
+    matrix = m;
+    col = m.length;
+    row = m[0].length;
+  }
+  
+  void arrayToMatrix(float[] arr) {
+    for (int i = 0; i< row; i++) {
+      for (int j = 0; j< col; j++) {
+        matrix[i][j] =  arr[i * col + j];
+      }
+    }
+  }
+}
+
 long warps = 0;
 
 // Takes an angle and returns the rotation matrix for that angle
-float[][] rotationMatrix (float radians){
-  float [][] res = {  {cos(radians), -sin(radians)},
-                      {sin(radians), cos(radians)}  };
+Matrix rotationMatrix (float radians){
+  Matrix res = new Matrix(2, 2);
+  res.arrayToMatrix(new float[] {cos(radians), -sin(radians), sin(radians), cos(radians)});
   return res;
 }
 
@@ -37,7 +58,7 @@ class Rock{
   int radius;
   // Column vector                 [ x ]
   // Holds the x, y coordinates    [ y ]
-  float [][] center = new float[2][1];
+  Matrix center = new Matrix(2, 1);
   float slope;
   float speed;
   
@@ -48,32 +69,32 @@ class Rock{
   
   void display(){
     fill(101, 67, 33);
-    ellipse(center[0][0] + width / 2, center[1][0] + height / 2, radius * 2, radius * 2);
+    ellipse(center.matrix[0][0] + width / 2, center.matrix[1][0] + height / 2, radius * 2, radius * 2);
   }
   
   void move(){
-    center[0][0] = center[0][0] + speed;
-    center[1][0] = center[1][0] + slope;
+    center.matrix[0][0] = center.matrix[0][0] + speed;
+    center.matrix[1][0] = center.matrix[1][0] + slope;
     
-    if(sqrt(pow(center[0][0], 2) + pow(center[1][0], 2)) > circleRadius){
+    if(sqrt(pow(center.matrix[0][0], 2) + pow(center.matrix[1][0], 2)) > circleRadius){
       reset();
     }
   }
   
   void reset(){
-    center[0][0] = 0;
-    center[1][0] = circleRadius;
+    center.matrix[0][0] = 0;
+    center.matrix[1][0] = circleRadius;
     do{
-      center = multiply(rotationMatrix(random(2*PI)), center);
+      center = multiplyMatrices(rotationMatrix(random(2*PI)), center);
     }
-    while (center[0][0] == ship.deltaX);
-    slope = (ship.deltaY - center[1][0]) / (ship.deltaX - center[0][0]);
-    while((center[0][0] == ship.deltaX) || ((slope > 5) || (slope < -5))){
-      center = multiply(rotationMatrix(random(2*PI)), center);
-      slope = (ship.deltaY - center[1][0]) / (ship.deltaX - center[0][0]);
+    while (center.matrix[0][0] == ship.deltaX);
+    slope = (ship.deltaY - center.matrix[1][0]) / (ship.deltaX - center.matrix[0][0]);
+    while((center.matrix[0][0] == ship.deltaX) || ((slope > 5) || (slope < -5))){
+      center = multiplyMatrices(rotationMatrix(random(2*PI)), center);
+      slope = (ship.deltaY - center.matrix[1][0]) / (ship.deltaX - center.matrix[0][0]);
     }
     
-    if((ship.topVertex[0][0] + width/2 + ship.deltaX) > (center[0][0] + width / 2)){
+    if((ship.topVertex.matrix[0][0] + width/2 + ship.deltaX) > (center.matrix[0][0] + width / 2)){
       speed = 1;
     }
     else{
@@ -90,9 +111,9 @@ class Ship{
   float deltaY;
   
   // Column vector for each vertex
-  float [][] topVertex;
-  float [][] leftVertex;
-  float [][] rightVertex;
+  Matrix topVertex;
+  Matrix leftVertex;
+  Matrix rightVertex;
   int speed;
   float rotateSpeed;
   float angle;
@@ -106,12 +127,12 @@ class Ship{
     rotateSpeed = 0;
     angle = 0;
     // The distance of the top vertex to the cetner of the triangle is equal to the triangleLength / sqrt(3)
-    topVertex = new float[][]{{0},
-                              {0 - (triangleLength / sqrt(3))}};
+    topVertex = new Matrix(2, 1);
+    topVertex.arrayToMatrix(new float[] {0, 0 - (triangleLength / sqrt(3))});
                               
     // To get the next vertex simply take a previous vertex and rotate by 120 degrees or 2 * PI / 3 radians 
-    leftVertex = multiply(rotationMatrix(2 * PI / 3), topVertex);
-    rightVertex = multiply(rotationMatrix(2 * PI / 3), leftVertex);
+    leftVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), topVertex);
+    rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
   }
   
   void display(){
@@ -136,9 +157,9 @@ class Ship{
     // deltaX and deltaY describe how much the center of the triangle has moved. This is pretty much the coordinates for the center of the triangle
     // The vertex coordinates help when drawing the triangle facing the proper direction
     // width / 2 and height / 2 are added to make the origin the center of the visible screen
-    triangle(topVertex[0][0] + width/2 + deltaX, topVertex[1][0] + height/2 + deltaY, leftVertex[0][0] + width/2 + deltaX, leftVertex[1][0] + height/2 + deltaY, rightVertex[0][0] + width/2 + deltaX, rightVertex[1][0] + height/2 + deltaY);
+    triangle(topVertex.matrix[0][0] + width/2 + deltaX, topVertex.matrix[1][0] + height/2 + deltaY, leftVertex.matrix[0][0] + width/2 + deltaX, leftVertex.matrix[1][0] + height/2 + deltaY, rightVertex.matrix[0][0] + width/2 + deltaX, rightVertex.matrix[1][0] + height/2 + deltaY);
     fill(255,0,0);
-    ellipse(topVertex[0][0] + width/2 + deltaX, topVertex[1][0] + height/2 + deltaY, 5, 5);
+    ellipse(topVertex.matrix[0][0] + width/2 + deltaX, topVertex.matrix[1][0] + height/2 + deltaY, 5, 5);
     fill(0,0,255);
     ellipse(width/2 + deltaX, height/2 + deltaY, inscribedRadius * 2, inscribedRadius * 2);
   }
@@ -157,11 +178,70 @@ class Ship{
     // When spinning keep track of the angle
     // Cacluate the top vertex by multiplying the top vertex with the rotation vertex
     angle = angle + rotateSpeed;
-    topVertex = multiply(rotationMatrix(rotateSpeed), topVertex);
+    topVertex = multiplyMatrices(rotationMatrix(rotateSpeed), topVertex);
     
     // To get the next vertex simply take a previous vertex and rotate by 120 degrees or 2 * PI / 3 radians 
-    leftVertex = multiply(rotationMatrix(2 * PI / 3), topVertex);
-    rightVertex = multiply(rotationMatrix(2 * PI / 3), leftVertex);
+    leftVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), topVertex);
+    rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
+  }
+  
+  void look(){
+    float x = topVertex.matrix[0][0] + width/2 + deltaX;
+    float y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      x = x + 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      x = x - 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y - 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y + 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y + 20;
+      x = x + 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y + 20;
+      x = x - 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y - 20;
+      x = x + 20;
+      ellipse(x, y , 30, 30);
+    }
+    
+    x = topVertex.matrix[0][0] + width/2 + deltaX;
+    y = topVertex.matrix[1][0] + height/2 + deltaY;
+    while(!(x > width || x < 0 || y > height || y < 0) ){
+      y = y - 20;
+      x = x - 20;
+      ellipse(x, y , 30, 30);
+    }
   }
 }
 
@@ -183,16 +263,16 @@ void createGame(){
   }
 }
 
-long dontMoveFitnesFunction(){
+long dontMoveFitnessFunction(){
   return totalTimeStill * totalTimeStill - totalTimeMoving;
 }
 
-long dontMoveTakeWarpsFitnesFunction(){
-  return dontMoveFitnesFunction() + (warps * warps * warps);
+long dontMoveTakeWarpsFitnessFunction(){
+  return dontMoveFitnessFunction() + (warps * warps * warps);
 }
 
-long dontMoveNoWarpsFitnesFunction(){
-  return dontMoveFitnesFunction() - (warps * warps * warps);
+long dontMoveNoWarpsFitnessFunction(){
+  return dontMoveFitnessFunction() - (warps * warps * warps);
 }
 
 long moveFitnessFunction(){
@@ -209,7 +289,7 @@ long moveNoWarpsFitnessFunction(){
 
 boolean collision(Ship a, Rock b){
   boolean ans = false;
-  float distance = sqrt(pow(a.deltaX - b.center[0][0], 2) + pow(a.deltaY - b.center[1][0], 2));
+  float distance = sqrt(pow(a.deltaX - b.center.matrix[0][0], 2) + pow(a.deltaY - b.center.matrix[1][0], 2));
   if(distance < (a.inscribedRadius + b.radius)) ans = true;
   return ans;
 }
@@ -233,6 +313,7 @@ void draw(){
   text("Score", 650,100);
   text(gameTime / 1000,650,150);
   ship.display();
+  ship.look();
   ship.spin();
   ship.move();
   for(int i = 0; i < 10; i ++){
@@ -246,10 +327,17 @@ void draw(){
         totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500);
       }
       println("Time still: " + totalTimeStill);
-      println("Don't move fitness: " + dontMoveFitnesFunction());
-      println();
       println("Time moving: " + totalTimeMoving);
+      println("Number of warps: " + warps);
+      println();
       println("Move fitness: " + moveFitnessFunction());
+      println("Move and warp around the screen: " + moveTakeWarpsFitnessFunction());
+      println("Move and don't warp around the screen: " + moveNoWarpsFitnessFunction());
+      println();
+      println("Don't move fitness: " + dontMoveFitnessFunction());
+      println("Don't move and warp around the screen: " + dontMoveTakeWarpsFitnessFunction());
+      println("Don't move and don't warp around the screen: " + dontMoveNoWarpsFitnessFunction());
+      println();
       println();
       totalTimeStill = 0;
       totalTimeMoving = 0;
