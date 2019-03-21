@@ -5,7 +5,7 @@ class Rock{
   // Column vector                 [ x ]
   // Holds the x, y coordinates    [ y ]
   Matrix center = new Matrix(2, 1);
-  float slope;
+  double slope;
   float speed;
   color defaultColor = color(101, 67, 33);
   
@@ -16,14 +16,14 @@ class Rock{
   
   void display(){
     fill(defaultColor);
-    ellipse(center.matrix[0][0] + width / 2, center.matrix[1][0] + height / 2, radius * 2, radius * 2);
+    ellipse((float)center.matrix[0][0] + width / 2, (float)center.matrix[1][0] + height / 2, radius * 2, radius * 2);
   }
   
   void move(){
     center.matrix[0][0] = center.matrix[0][0] + speed;
     center.matrix[1][0] = center.matrix[1][0] + slope;
     
-    if(sqrt(pow(center.matrix[0][0], 2) + pow(center.matrix[1][0], 2)) > circleRadius){
+    if(sqrt(pow((float)center.matrix[0][0], 2) + pow((float)center.matrix[1][0], 2)) > circleRadius){
       reset();
     }
   }

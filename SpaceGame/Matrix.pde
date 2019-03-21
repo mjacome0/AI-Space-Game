@@ -1,21 +1,21 @@
 public class Matrix{
   int row;
   int col;
-  float[][] matrix;
+  double[][] matrix;
   
   Matrix(int r, int c) {
     row = r;
     col = c;
-    matrix = new float[row][col];
+    matrix = new double[row][col];
   }
   
-  Matrix(float[][] m) {
+  Matrix(double[][] m) {
     matrix = m;
     col = m.length;
     row = m[0].length;
   }
   
-  void arrayToMatrix(float[] arr) {
+  void arrayToMatrix(double[] arr) {
     for (int i = 0; i< row; i++) {
       for (int j = 0; j< col; j++) {
         matrix[i][j] =  arr[i * col + j];
@@ -23,19 +23,29 @@ public class Matrix{
     }
   }
   
+  double [] getArray(){
+    double [] res = new double [row * col];
+    for(int i = 0; i < row; i++){
+      for(int  j = 0; j < col; j++){
+        res[i * col + j] = matrix[i][j];
+      }
+    }
+    return res;
+  }
+  
   // this just takes a matrix and gives it a random value  
-  void randomizer(){
+  void randomizer(int n){
     for(int i = 0; i < row;i++){
       for(int j = 0; j < col; j++){
-        matrix[i][j] = random(0,1);
+        matrix[i][j] = randomGaussian() * sqrt(2.0 / n);
       }
     }
   }
   
-  void Activation(){
+  void activate(){
     for(int i = 0; i < row; i++){
       for(int j = 0; j < col; j++){
-        matrix[i][j] = (1)/(1+exp(-matrix[i][j]));
+        matrix[i][j] = (1)/(1+exp((float)-matrix[i][j]));
       }
     }
   }

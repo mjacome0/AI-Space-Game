@@ -49,6 +49,7 @@ long moveNoWarpsFitnessFunction(){
 }
 
 void setup(){
+  frameRate(60);
   size(800, 800);
   background(0);
   noStroke();
@@ -58,6 +59,7 @@ void setup(){
 }
 
 void draw(){
+  //println(frameRate);
   int gameTime = millis() - startTime;
   background(0);
   textSize(32);
@@ -69,7 +71,7 @@ void draw(){
   for(int i = 0; i < 10; i ++){
     rock[i].display();
     rock[i].move();
-    if(collision(ship.deltaX, ship.deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], ship.inscribedRadius, rock[i].radius)){
+    if(collision(ship.deltaX, ship.deltaY, (float)rock[i].center.matrix[0][0], (float)rock[i].center.matrix[1][0], ship.inscribedRadius, rock[i].radius)){
       if(ship.speed == 0){ // If ship is not moving. Update total time ship was still 
         totalTimeStill = totalTimeStill + int((millis() - timeStill) / 1000);
       }
@@ -91,12 +93,17 @@ void draw(){
       println();
       delay(1000);
       startTime = millis();
+      
+      ship.brain.input_hidden.randomizer(9);
+      ship.brain.hidden_output.randomizer(6);
+      
       createGame();
       break;
     }
   }
   ship.look();
-  //ship.act();
+  ship.think();
+  ship.act();
   ship.spin();
   ship.move();
 }
@@ -136,7 +143,7 @@ void keyPressed(){
 // Takes two matrices and returns the product between them
 public Matrix multiplyMatrices (Matrix mat1, Matrix mat2){
   Matrix res = new Matrix(mat1.row, mat2.col);
-  for(int i = 0; i < mat2.row;i++){
+  for(int i = 0; i < mat1.row;i++){
     for(int j = 0; j < mat2.col; j++){
       res.matrix[i][j] = 0;
       for(int k = 0;  k < mat1.col; k++){
@@ -150,18 +157,37 @@ public Matrix multiplyMatrices (Matrix mat1, Matrix mat2){
 // Takes an angle and returns the rotation matrix for that angle
 public Matrix rotationMatrix (float radians){
   Matrix res = new Matrix(2, 2);
-  res.arrayToMatrix(new float[] {cos(radians), -sin(radians), sin(radians), cos(radians)});
+  res.arrayToMatrix(new double[] {cos(radians), -sin(radians), sin(radians), cos(radians)});
   return res;
 }
 
-public float distance(float x1, float y1, float x2, float y2){
-  float ans = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+public double distance(float x1, float y1, float x2, float y2){
+  double ans = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
   return ans;
 }
 
 public boolean collision(float x1, float y1, float x2, float y2, float r1, float r2){
   boolean ans = false;
-  float distance = distance(x1, y1, x2, y2);
+  double distance = distance(x1, y1, x2, y2);
   if(distance < (r1 + r2)) ans = true;
   return ans;
+}
+
+public double [] normalize(double [] input){
+  int size = input.length;
+  double sum = 0;
+  for(int i = 0; i < size; i++){
+    sum = sum + input[i];
+  }
+  double avg = sum / size;
+  double total = 0;
+  for(int i = 0; i < size; i++){
+    total = total + pow((float)(input[i] - avg), 2);
+  }
+  double var = total / sum;
+  double [] res = input;
+  for(int i = 0; i < size; i++){
+    res[i] = (input[i] - avg) / sqrt((float)(var + 0.00001));
+  }
+  return res;
 }
