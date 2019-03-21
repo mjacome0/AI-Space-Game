@@ -60,6 +60,8 @@ class Ship{
   }
   
   void act(){
+    float [] temp = new float[] {1, 1, 1};
+    decision.arrayToMatrix(temp);
     if(decision.matrix[0][0] == 0){ // Decides not to move forward
       ship.speed = 0;
       timeStill = millis(); // Ship went from moving to not moving. Begin to keep track of time ship isn't moving 
@@ -102,127 +104,164 @@ class Ship{
     rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
   }
   
-  void look(Rock a){
-    int [] lastMultiple = new int [8]; 
-    boolean inBox = true;
+  void look(){
+    int [] ids = new int [8]; 
+    for(int i = 0; i < 8; i++) ids[i] = -1;
+    float [] distances = new float [8];
     boolean found = false;
     float x;
     float y;
-    int i = 0;
-    while(inBox){
-      inBox = false;
-      x = deltaX;
-      y = deltaY;
-      i = i + 1;
-      if(deltaX + (i * 20) < width / 2){
-        if(collision(x + (i * 20), y, a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
+    int count = 0;
+    
+    x = deltaX;
+    y = deltaY;
+    while(x < width / 2){
+      x = x + 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
           found = true;
+          ids[0] = i;
+          distances[0] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
           break;
         }
-        inBox = true;
       }
-      else{
-        if(lastMultiple[0] == 0){
-          lastMultiple[0] = i;
-        }
-      }
-      
-      if(deltaX - (i * 20) > - width / 2){
-        if(collision(x - (i * 20), y, a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[1] == 0){
-          lastMultiple[1] = i;
-        }
-      }
-      
-      if(deltaY + (i * 20) < height / 2){
-        if(collision(x, y + (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[2] == 0){
-          lastMultiple[2] = i;
-        }
-      }
-      
-      if(deltaY - (i * 20) > - height / 2){
-        if(collision(x, y - (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[3] == 0){
-          lastMultiple[3] = i;
-        }
-      }
-      
-      if(deltaX + (i * 20) < width / 2 && deltaY + (i * 20) < height / 2){
-        if(collision(x + (i * 20), y + (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[4] == 0){
-          lastMultiple[4] = i;
-        }
-      }
-      
-      if(deltaX + (i * 20) < width / 2 && deltaY - (i * 20) > - height / 2){
-        if(collision(x + (i * 20), y - (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[5] == 0){
-          lastMultiple[5] = i;
-        }
-      }
-      
-      if(deltaX - (i * 20) > - width / 2 && deltaY + (i * 20) < height / 2){
-        if(collision(x - (i * 20), y + (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[6] == 0){
-          lastMultiple[6] = i;
-        }
-      }
-      
-      if(deltaX - (i * 20) > - width / 2 && deltaY - (i * 20) > - height / 2){
-        if(collision(x - (i * 20), y - (i * 20), a.center.matrix[0][0], a.center.matrix[1][0], 20, a.radius)){
-          found = true;
-          break;
-        }
-        inBox = true;
-      }
-      else{
-        if(lastMultiple[7] == 0){
-          lastMultiple[7] = i;
-        }
-      }
+      if(found) break;
     }
-    if(found){
-      a.defaultColor = color(255, 255, 0);
+    if(!found) distances[0] = width / 2 - deltaX;
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    while(x > - width / 2){
+      x = x - 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[1] = i;
+          distances[1] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
     }
-    else{
-      a.defaultColor = color(101, 67, 33);
+    if(!found) distances[1] = deltaX + width / 2;
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    while(y < height / 2){
+      y = y + 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[2] = i;
+          distances[2] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
     }
+    if(!found) distances[2] = height / 2 - deltaY;
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    while(y > - height / 2){
+      y = y - 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[3] = i;
+          distances[3] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
+    }
+    if(!found) distances[3] = height / 2 + deltaY;
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    count = 0;
+    while(x < width / 2 && y < height / 2){
+      count = count + 1;
+      x = x + 20;
+      y = y + 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[4] = i;
+          distances[4] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
+    }
+    if(!found) distances[4] = distance(0, 0, count * 20, count * 20);
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    count = 0;
+    while(x < width / 2 && y > - height / 2){
+      count = count + 1;
+      x = x + 20;
+      y = y - 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[5] = i;
+          distances[5] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
+    }
+    if(!found) distances[5] = distance(0, 0, count * 20, count * 20);
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    count = 0;
+    while(x > - width / 2 && y < height / 2){
+      count = count + 1;
+      x = x - 20;
+      y = y + 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[6] = i;
+          distances[6] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
+    }
+    if(!found) distances[6] = distance(0, 0, count * 20, count * 20);
+    
+    x = deltaX;
+    y = deltaY;
+    found = false;
+    count = 0;
+    while(x > - width / 2 && y > - height / 2){
+      count = count + 1;
+      x = x - 20;
+      y = y - 20;
+      for(int i = 0; i < 10; i++){
+        if(collision(x, y, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], 20, rock[i].radius)){
+          found = true;
+          ids[7] = i;
+          distances[7] = distance(deltaX, deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0]);
+          break;
+        }
+      }
+      if(found) break;
+    }
+    if(!found) distances[7] = distance(0, 0, count * 20, count * 20);
+    //println(distances[7]);
+    
+    for(int i = 0; i < 10; i++) rock[i].defaultColor = color(101, 67, 33);
+    for(int i = 0; i < 8; i++) if(ids[i] != -1) rock[ids[i]].defaultColor = color(255, 255, 0);
   }
 }

@@ -68,7 +68,6 @@ void draw(){
   //ship.act();
   for(int i = 0; i < 10; i ++){
     rock[i].display();
-    ship.look(rock[i]);
     rock[i].move();
     if(collision(ship.deltaX, ship.deltaY, rock[i].center.matrix[0][0], rock[i].center.matrix[1][0], ship.inscribedRadius, rock[i].radius)){
       if(ship.speed == 0){ // If ship is not moving. Update total time ship was still 
@@ -96,13 +95,15 @@ void draw(){
       break;
     }
   }
+  ship.look();
+  //ship.act();
   ship.spin();
   ship.move();
 }
 
 void keyReleased(){
   if(key == CODED){
-    if (keyCode == UP){
+    if(keyCode == UP){
       ship.speed = 0;
       timeStill = millis(); // Ship went from moving to not moving. Begin to keep track of time ship isn't moving 
       totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500); // Ship stopped moving so update total time ship was moving
