@@ -33,6 +33,29 @@ public class Matrix{
     return res;
   }
   
+  //should take a number from 0 to 100 and mutate the matrix x amount of time 
+  //values are allowed to get mutated twice in the case of larger mutation rates
+  void mutation(float rate){
+    int i;
+    int j;
+    rate = 100/rate;
+    float amount = (row*col)/rate;
+    while(amount > 0){
+      i = (int)floor(random(0,row));
+      j = (int)floor(random(0,col));
+      float randomposneg = random(-1,1);
+        double temp = matrix[i][j]/20;
+        if(randomposneg > 0){
+          matrix[i][j] += temp;
+          amount--;
+        }
+        else{
+          matrix[i][j] -= temp;
+          amount--;
+        }
+    }
+  }
+  
   // this just takes a matrix and gives it a random value  
   void randomizer(int n){
     for(int i = 0; i < row;i++){
