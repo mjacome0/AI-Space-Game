@@ -19,4 +19,24 @@ int col2;
      input_hidden.randomizer(9);
      hidden_output.randomizer(6);    
   }
+  
+    NeuralNet crossover(NeuralNet secondShip){
+    NeuralNet temp = new NeuralNet(row1,col1,row2,col2);
+    for(int i = 0; i < secondShip.input_hidden.row; i++){
+      for(int j = 0; j < secondShip.input_hidden.col; j++){
+        temp.input_hidden.matrix[i][j] = (input_hidden.matrix[i][j] + secondShip.input_hidden.matrix[i][j])/2;
+      }
+    }  
+    for(int i = 0; i < secondShip.hidden_output.row; i++){
+      for(int j = 0; j < secondShip.hidden_output.col; j++){
+        temp.hidden_output.matrix[i][j] = (hidden_output.matrix[i][j] + secondShip.hidden_output.matrix[i][j])/2;
+      }
+    }
+    return temp;
+  } 
+  
+  void mutateNN(int rate){
+   input_hidden.mutation(rate);
+   hidden_output.mutation(rate); 
+  }
 }
