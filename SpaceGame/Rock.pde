@@ -31,17 +31,23 @@ class Rock{
   void reset(){
     center.matrix[0][0] = 0;
     center.matrix[1][0] = circleRadius;
+    Ship targetShip = new Ship();
+    for(int i = 0; i < shipCount; i++){
+      if(ship[i].alive){
+        targetShip = ship[i];
+      }
+    }
     do{
       center = multiplyMatrices(rotationMatrix(random(2*PI)), center);
     }
-    while (center.matrix[0][0] == ship.deltaX);
-    slope = (ship.deltaY - center.matrix[1][0]) / (ship.deltaX - center.matrix[0][0]);
-    while((center.matrix[0][0] == ship.deltaX) || ((slope > 5) || (slope < -5))){
+    while (center.matrix[0][0] == targetShip.deltaX);
+    slope = (targetShip.deltaY - center.matrix[1][0]) / (targetShip.deltaX - center.matrix[0][0]);
+    while((center.matrix[0][0] == targetShip.deltaX) || ((slope > 5) || (slope < -5))){
       center = multiplyMatrices(rotationMatrix(random(2*PI)), center);
-      slope = (ship.deltaY - center.matrix[1][0]) / (ship.deltaX - center.matrix[0][0]);
+      slope = (targetShip.deltaY - center.matrix[1][0]) / (targetShip.deltaX - center.matrix[0][0]);
     }
     
-    if((ship.topVertex.matrix[0][0] + width/2 + ship.deltaX) > (center.matrix[0][0] + width / 2)){
+    if((targetShip.topVertex.matrix[0][0] + width/2 + targetShip.deltaX) > (center.matrix[0][0] + width / 2)){
       speed = 1;
     }
     else{

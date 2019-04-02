@@ -1,6 +1,7 @@
-Ship ship;
+Ship [] ship;
 Rock [] rock;
-long warps = 0;
+int shipCount = 1000;
+int rockCount = 15;
 int startTime = 0;
 
 // Keeping track of time ship is still
@@ -12,18 +13,20 @@ long totalTimeMoving = 0;
 long timeMoving = 0;
 
 void createGame(){
-  ship = new Ship();
+  ship = new Ship[shipCount];
   rock = new Rock[10];
+  for(int i = 0; i < shipCount; i++){
+    ship[i] = new Ship();
+  }
   for(int i = 0; i < 10; i++){
     rock[i] = new Rock();
   }
-  warps = 0;
   timeMoving = 0;
   totalTimeStill = 0;
   totalTimeMoving = 0;
   timeStill = millis(); // Begin keeping track of time still since ship is not moving at first 
 }
-
+/*
 long dontMoveFitnessFunction(){
   return totalTimeStill * totalTimeStill - totalTimeMoving;
 }
@@ -47,18 +50,83 @@ long moveTakeWarpsFitnessFunction(){
 long moveNoWarpsFitnessFunction(){
   return moveFitnessFunction() - (warps * warps * warps);
 }
+*/
 
 void setup(){
-  frameRate(60);
+  frameRate(240);
   size(800, 800);
   background(0);
   noStroke();
   ellipseMode(CENTER); 
-  createGame();
+  ship = new Ship[shipCount];
+  rock = new Rock[rockCount];
+  for(int i = 0; i < shipCount; i++){
+    ship[i] = new Ship();
+  }
+  for(int i = 0; i < rockCount; i++){
+    rock[i] = new Rock();
+  }
   startTime = millis();
 }
 
 void draw(){
+  int gameTime = millis() - startTime;
+  background(0);
+  textSize(32);
+  fill(255,255,255);
+  text("Score", 650,100);
+  text(gameTime / 1000,650,150);
+  for(int i = 0; i < shipCount; i++){
+    if(ship[i].alive){
+      ship[i].display();
+      ship[i].look();
+      ship[i].think();
+      ship[i].act();
+      ship[i].spin();
+      ship[i].move();
+      for(int j = 0; j < rockCount; j++){
+        if(collision(ship[i].deltaX, ship[i].deltaY, (float)rock[j].center.matrix[0][0], (float)rock[j].center.matrix[1][0], ship[i].inscribedRadius, rock[j].radius)){
+          ship[i].alive = false;
+          ship[i].scoreBefore = ship[i].score;
+          if(ship[i].warps != 0) ship[i].score = ship[i].score - (long)pow(ship[i].warps + 5, 8);
+        }
+      }
+    }
+  }
+  for(int i = 0; i < rockCount; i++){
+    rock[i].display();
+    rock[i].move();
+  }
+  boolean shipAlive = false;
+  for(int i = 0; i < shipCount; i++){
+    if(ship[i].alive){
+      shipAlive = true;
+      break;
+    }
+  }
+  if(!shipAlive){
+    for(int i = 0; i < rockCount; i++){
+      rock[i].reset();
+    }
+    sort(ship, 0, shipCount - 1);
+    //println();
+    //println("Best ship:");
+    println("Score: " + ship[shipCount - 1].score + "\tWarps: " + ship[shipCount - 1].warps + "\tTime: " + (millis() - startTime)/1000);
+    //println();
+    //println("Worst ship:");
+    //println("Score before warps: " + ship[0].scoreBefore + "\tScore: " + ship[0].score + "\tWarps: " + ship[0].warps);
+    for(int i = 0; i < shipCount / 2; i++){
+      ship[i].reset(true);
+    }
+    for(int i = shipCount / 2; i < shipCount; i = i + 2){
+      ship[i].crossover(ship[i + 1]);
+      ship[i].reset(false);
+      ship[i + 1].reset(false);
+    }
+    delay(1000);
+    startTime = millis();
+  }
+  /*
   //println(frameRate);
   int gameTime = millis() - startTime;
   background(0);
@@ -106,8 +174,10 @@ void draw(){
   ship.act();
   ship.spin();
   ship.move();
+  */
 }
 
+/*
 void keyReleased(){
   if(key == CODED){
     if(keyCode == UP){
@@ -139,6 +209,7 @@ void keyPressed(){
     }
   }
 }
+*/
 
 // Takes two matrices and returns the product between them
 public Matrix multiplyMatrices (Matrix mat1, Matrix mat2){
@@ -191,3 +262,28 @@ public double [] normalize(double [] input){
   }
   return res;
 }
+
+int partition(Ship arr[], int low, int high){ 
+  Ship pivot = arr[high];
+  int i = low-1; // index of smaller element 
+  for (int j=low; j<high; j++){ 
+    if (arr[j].score <= pivot.score){ 
+      i++; 
+      Ship temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+  } 
+  Ship temp = arr[i+1]; 
+  arr[i+1] = arr[high];
+  arr[high] = temp; 
+  return i+1; 
+}
+
+void sort(Ship arr[], int low, int high) { 
+  if(low < high){ 
+    int pi = partition(arr, low, high); 
+    sort(arr, low, pi-1);
+    sort(arr, pi+1, high); 
+  }
+} 

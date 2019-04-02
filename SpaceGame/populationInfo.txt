@@ -1,0 +1,4 @@
+Population: 1000
+Rocks: 15
+On each iteration, the bottom 50% are killed off and randomly generated again. 
+The top 50% breed. Half of those top 50 are kept and the other hald are replaced by their child. 

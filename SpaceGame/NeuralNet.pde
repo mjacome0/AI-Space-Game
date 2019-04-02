@@ -17,6 +17,6 @@ int col2;
      hidden_output = new Matrix(r2,c2); 
      
      input_hidden.randomizer(9);
-     hidden_output.randomizer(6);    
+     hidden_output.randomizer(6);
   }
 }

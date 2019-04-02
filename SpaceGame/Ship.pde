@@ -1,36 +1,52 @@
 class Ship{
-  Matrix decision = new Matrix(3,1);
-  NeuralNet brain = new NeuralNet(5, 9, 3, 6);
-  double [] inputLayer = new double [9];
+  Matrix decision;
+  NeuralNet brain;
+  double [] inputLayer;
   int triangleLength;
   float inscribedRadius;
-  float deltaX;
-  float deltaY;
+  boolean alive;
+  int warps;
+  long score;
+  long scoreBefore;
   
   // Column vector for each vertex
   Matrix topVertex;
   Matrix leftVertex;
   Matrix rightVertex;
+  float deltaX;
+  float deltaY;
   int speed;
   float rotateSpeed;
   float angle;
   
   Ship(){
+    reset(true);               
+  }
+  
+  void reset(boolean x){
+    decision = new Matrix(3, 1);
+    if(x) brain = new NeuralNet(5, 9, 3, 6);
+    inputLayer = new double [9];
     inputLayer[0] = 1;
     triangleLength = 30;
     inscribedRadius = triangleLength * sqrt(3) / 6;
+    alive= true;
+    warps = 0;
+    score = 0;
+    scoreBefore = 0;
+    
+    // The distance of the top vertex to the cetner of the triangle is equal to the triangleLength / sqrt(3)
+    topVertex = new Matrix(2, 1);
+    topVertex.arrayToMatrix(new double[] {0, 0 - (triangleLength / sqrt(3))});
+    // To get the next vertex simply take a previous vertex and rotate by 120 degrees or 2 * PI / 3 radians 
+    leftVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), topVertex);
+    rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
+    
     deltaX = 0;
     deltaY = 0;
     speed = 0;
     rotateSpeed = 0;
-    angle = 0;
-    // The distance of the top vertex to the cetner of the triangle is equal to the triangleLength / sqrt(3)
-    topVertex = new Matrix(2, 1);
-    topVertex.arrayToMatrix(new double[] {0, 0 - (triangleLength / sqrt(3))});
-                              
-    // To get the next vertex simply take a previous vertex and rotate by 120 degrees or 2 * PI / 3 radians 
-    leftVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), topVertex);
-    rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
+    angle = 0; 
   }
   
   void display(){
@@ -62,28 +78,6 @@ class Ship{
     ellipse(width/2 + deltaX, height/2 + deltaY, inscribedRadius * 2, inscribedRadius * 2);
   }
   
-  void act(){
-    if(round((float)decision.matrix[0][0]) == 0){ // Decides not to move forward
-      ship.speed = 0;
-      timeStill = millis(); // Ship went from moving to not moving. Begin to keep track of time ship isn't moving 
-      totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500); // Ship stopped moving so update total time ship was moving
-    }
-    else{ // Decides to move forward
-      ship.speed = 5;
-      totalTimeStill = totalTimeStill + int((millis() - timeStill) / 500); // Ship started moving so update total time ship was not moving 
-      timeMoving = millis(); // Ship went from not moving to moving. Begin to keep track of time ship is moving
-    }
-    if(round((float)decision.matrix[1][0]) == 1 && round((float)decision.matrix[2][0]) == 0){ // Decides not to turn left
-      ship.rotateSpeed = -PI/30;
-    }
-    else if(round((float)decision.matrix[1][0]) == 0 && round((float)decision.matrix[2][0]) == 1){
-      ship.rotateSpeed = PI/30;
-    }
-    else{
-      ship.rotateSpeed = 0;
-    }
-  }
-  
   void move(){
     // The ship can only move in the direction it's facing
     // The angle keeps track of how much the ship has rotated 
@@ -103,6 +97,28 @@ class Ship{
     // To get the next vertex simply take a previous vertex and rotate by 120 degrees or 2 * PI / 3 radians 
     leftVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), topVertex);
     rightVertex = multiplyMatrices(rotationMatrix(2 * PI / 3), leftVertex);
+  }
+  
+  void act(){
+    if(round((float)decision.matrix[0][0]) == 0){ // Decides not to move forward
+      speed = 0;
+      timeStill = millis(); // Ship went from moving to not moving. Begin to keep track of time ship isn't moving 
+      totalTimeMoving = totalTimeMoving + int((millis() - timeMoving) / 500); // Ship stopped moving so update total time ship was moving
+    }
+    else{ // Decides to move forward
+      speed = 5;
+      totalTimeStill = totalTimeStill + int((millis() - timeStill) / 500); // Ship started moving so update total time ship was not moving 
+      timeMoving = millis(); // Ship went from not moving to moving. Begin to keep track of time ship is moving
+    }
+    if(round((float)decision.matrix[1][0]) == 1 && round((float)decision.matrix[2][0]) == 0){ // Decides not to turn left
+      rotateSpeed = -PI/30;
+    }
+    else if(round((float)decision.matrix[1][0]) == 0 && round((float)decision.matrix[2][0]) == 1){
+      rotateSpeed = PI/30;
+    }
+    else{
+      rotateSpeed = 0;
+    }
   }
   
   void look(){
@@ -263,7 +279,11 @@ class Ship{
     //println(distances[7]);
     
     for(int i = 0; i < 10; i++) rock[i].defaultColor = color(101, 67, 33);
-    for(int i = 0; i < 8; i++) if(ids[i] != -1) rock[ids[i]].defaultColor = color(255, 255, 0);
+    for(int i = 0; i < 8; i++) if(ids[i] != -1){
+      rock[ids[i]].defaultColor = color(255, 255, 0);
+      if(distances[i] > 100) score = score + 1;
+      else score = score - 1;
+    }
     
     double [] normalizedDistance = normalize(distances);
     for(int i = 0; i < 8; i++){
@@ -289,5 +309,18 @@ class Ship{
     Matrix outputLayer = multiplyMatrices(brain.hidden_output, hiddenLayerMatrix);
     outputLayer.activate();
     decision = outputLayer;
+  }
+  
+  void crossover(Ship a){
+    for(int i = 0; i < brain.input_hidden.row; i++){
+      for(int j = 0; j < brain.input_hidden.col; j++){
+        brain.input_hidden.matrix[i][j] = (brain.input_hidden.matrix[i][j] + a.brain.input_hidden.matrix[i][j]) / 2.0;
+      }
+    }
+    for(int i = 0; i < brain.hidden_output.row; i++){
+      for(int j = 0; j < brain.hidden_output.col; j++){
+        brain.hidden_output.matrix[i][j] = (brain.hidden_output.matrix[i][j] + a.brain.hidden_output.matrix[i][j]) / 2.0;
+      }
+    }
   }
 }
