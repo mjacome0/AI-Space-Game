@@ -16,8 +16,8 @@ public class Matrix{
   }
   
   void arrayToMatrix(double[] arr) {
-    for (int i = 0; i< row; i++) {
-      for (int j = 0; j< col; j++) {
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
         matrix[i][j] =  arr[i * col + j];
       }
     }
@@ -34,10 +34,10 @@ public class Matrix{
   }
   
   // this just takes a matrix and gives it a random value  
-  void randomizer(int n){
-    for(int i = 0; i < row;i++){
+  void randomizer(){
+    for(int i = 0; i < row; i++){
       for(int j = 0; j < col; j++){
-        matrix[i][j] = randomGaussian() * sqrt(2.0 / n);
+        matrix[i][j] = randomGaussian() * sqrt(2.0 / col);
       }
     }
   }
@@ -46,6 +46,15 @@ public class Matrix{
     for(int i = 0; i < row; i++){
       for(int j = 0; j < col; j++){
         matrix[i][j] = (1)/(1+exp((float)-matrix[i][j]));
+      }
+    }
+  }
+  
+  void mutate(float rate){
+    for(int i = 0; i < row; i++){
+      for(int j = 0; j < col; j++){
+        float rand = random(1);
+        if(rand < rate) matrix[i][j] = randomGaussian() * sqrt(2.0 / col);
       }
     }
   }
