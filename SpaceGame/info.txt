@@ -3,18 +3,27 @@ Population size is 600
 Rocks go in a random direction on screen
 Each rock has a 30 percent chance of targeting a ship
 
-Input layer is a vector of size 15 containing the distance from each rock 
+Input layer is a vector of size 8
+Ship looks in 8 cardinal direction directions 
+The distances from a rock or the wall in that direction is calculated
 The values are normalized so each value is between 0 and 1
 
 Two hidden layers containing 10 nodes each 
 
 Output has 3 nodes 
 
-Fitness function is based only on time 
+Fitness function is based on the values in the input layer
+If a distance is greater than 150, the score is incremented
+If all distances are greater than 150, then score is increased by 8
+If only 2 distances are grater than 150, then score is increase by 2, etc.
+
+If a ship goes to the end of the screen and appears on the other side, then the amount of times this occurs is increased by 5 and raised to the 4th power
+The score is then subtracted by this value
+Penalizing heavy for warping 
 
 Using single point crossover on the weight matrices 
 
-Each value in all weight matrices have a 15 percent chance of being mutated
+Each value in all weight matrices have a 8 percent chance of being mutated
 
 Top 50 percent of ships are chosen to breed
 

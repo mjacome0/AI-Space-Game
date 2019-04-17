@@ -1,6 +1,6 @@
 Ship [] ship;
 Rock [] rock;
-int shipCount = 600;
+int shipCount = 400;
 int rockCount = 15;
 int startTime = 0;
 
@@ -28,10 +28,18 @@ void draw(){
   fill(255,255,255);
   text("Score", 650,100);
   text(gameTime, 650, 150);
+  int index = 0;
+  for(int i = shipCount- 1 ; i >= 0; i--){
+    if(ship[i].alive){
+      index = i;
+      break;
+    }
+  }
   
   for(int i = 0; i < shipCount; i++){
     if(ship[i].alive){
-      ship[i].display();
+      if(i == index) ship[i].display(true);
+      else ship[i].display(false);
       ship[i].look();
       ship[i].think();
       ship[i].act();
@@ -40,7 +48,7 @@ void draw(){
       for(int j = 0; j < rockCount; j++){
         if(collision(ship[i].deltaX, ship[i].deltaY, (float)rock[j].center.matrix[0][0], (float)rock[j].center.matrix[1][0], ship[i].inscribedRadius, rock[j].radius)){
           ship[i].alive = false;
-          ship[i].score = gameTime;
+          if(ship[i].warps != 0) ship[i].score = ship[i].score - (long)pow(ship[i].warps + 5, 3);
         }
       }
     }
@@ -68,9 +76,9 @@ void draw(){
     }
     for(int i = 0; i < shipCount; i++) ship[i].reset();
     for(int i = shipCount / 4; i < shipCount; i++) {
-      ship[i].brain.hidden_output.mutate(0.15);
-      ship[i].brain.input_hidden.mutate(0.15);
-      ship[i].brain.hidden_hidden.mutate(0.15);
+      ship[i].brain.hidden_output.mutate(0.08);
+      ship[i].brain.input_hidden.mutate(0.08);
+      ship[i].brain.hidden_hidden.mutate(0.08);
     }
     startTime = millis();
   }

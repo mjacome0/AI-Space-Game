@@ -23,12 +23,12 @@ class Ship{
     reset();
     int firstHiddenLayerNodes = 10;
     int secondHiddenLayerNodes = 10;
-    brain = new BigNeuralNet(firstHiddenLayerNodes, rockCount + 1, secondHiddenLayerNodes, firstHiddenLayerNodes + 1, 3, secondHiddenLayerNodes + 1);
+    brain = new BigNeuralNet(firstHiddenLayerNodes, 9, secondHiddenLayerNodes, firstHiddenLayerNodes + 1, 3, secondHiddenLayerNodes + 1);
   }
   
   void reset(){
     decision = new Matrix(3, 1);
-    inputLayer = new double [rockCount];
+    inputLayer = new double [8];
     triangleLength = 30;
     inscribedRadius = triangleLength * sqrt(3) / 6;
     alive= true;
@@ -50,7 +50,7 @@ class Ship{
     angle = 0; 
   }
   
-  void display(){
+  void display(boolean x){
     // Some statements to allow teleporting if ship goes beyond viewable screen
     if(deltaX > width/2){
       deltaX = -width/2;
@@ -68,14 +68,17 @@ class Ship{
       deltaY = height/2;
       warps = warps + 1;
     }
-    fill(255,255,255); 
+    if(x) fill(0, 255, 0);
+    else fill(255,255,255); 
     // deltaX and deltaY describe how much the center of the triangle has moved. This is pretty much the coordinates for the center of the triangle
     // The vertex coordinates help when drawing the triangle facing the proper direction
     // width / 2 and height / 2 are added to make the origin the center of the visible screen
     triangle((float)(topVertex.matrix[0][0] + width/2 + deltaX), (float)(topVertex.matrix[1][0] + height/2 + deltaY), (float)(leftVertex.matrix[0][0] + width/2 + deltaX), (float)(leftVertex.matrix[1][0] + height/2 + deltaY), (float)(rightVertex.matrix[0][0] + width/2 + deltaX), (float)(rightVertex.matrix[1][0] + height/2 + deltaY));
-    fill(255,0,0);
+    if(x) fill(0, 255, 0);
+    else fill(255,0,0);
     ellipse((float)(topVertex.matrix[0][0] + width/2 + deltaX), (float)(topVertex.matrix[1][0] + height/2 + deltaY), 5, 5);
-    fill(0,0,255);
+    if(x) fill(0, 255, 0);
+    else fill(0,0,255);
     ellipse(width/2 + deltaX, height/2 + deltaY, inscribedRadius * 2, inscribedRadius * 2);
   }
   
@@ -134,13 +137,7 @@ class Ship{
   }
   
   void look(){
-    double [] distances = new double [rockCount];
-    for(int i = 0; i < rockCount; i++){
-      distances[i] = distance(deltaX, deltaY, (float)rock[i].center.matrix[0][0], (float)rock[i].center.matrix[1][0]);
-    }
-    inputLayer = normalize(distances);
-    
-    /*int [] ids = new int [8]; 
+    int [] ids = new int [8]; 
     for(int i = 0; i < 8; i++) ids[i] = -1;
     double [] distances = new double [8];
     boolean found = false;
@@ -299,19 +296,15 @@ class Ship{
     for(int i = 0; i < 8; i++){
       if(ids[i] != -1){
         rock[ids[i]].defaultColor = color(255, 255, 0);
-        if(distances[i] > 150) score = score + 1;
       }
+      if(distances[i] > 150) score = score + 1;
     }
     
-    double [] normalizedDistance = normalize(distances);
-    for(int i = 0; i < 8; i++){
-      inputLayer[i + 1] = normalizedDistance[i];
-    }
-    */
+    inputLayer = normalize(distances);
   }
   
   void think(){
-    Matrix inputMatrix = new Matrix(rockCount, 1);
+    Matrix inputMatrix = new Matrix(8, 1);
     inputMatrix.arrayToMatrix(inputLayer); 
     inputMatrix.addBias();
     
