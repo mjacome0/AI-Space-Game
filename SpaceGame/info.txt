@@ -1,0 +1,23 @@
+Population size is 600
+
+Rocks go in a random direction on screen
+Each rock has a 30 percent chance of targeting a ship
+
+Input layer is a vector of size 15 containing the distance from each rock 
+The values are normalized so each value is between 0 and 1
+
+Two hidden layers containing 10 nodes each 
+
+Output has 3 nodes 
+
+Fitness function is based only on time 
+
+Using single point crossover on the weight matrices 
+
+Each value in all weight matrices have a 15 percent chance of being mutated
+
+Top 50 percent of ships are chosen to breed
+
+Keep the ships from the 25 percent point up to the 50 percent point 
+
+All top 75 percent ships are mutated 
